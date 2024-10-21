@@ -29,19 +29,24 @@ class MovieServiceTest {
     @InjectMocks
     private MovieService movieService;
 
-    private Movie movie;
+    private List<Movie> movies;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        movie = new Movie(1L, "Inception", "Sci-Fi", true, "poster.jpg", LocalDate.of(2010, 7, 16));
+        // Create multiple movie instances
+        movies = Arrays.asList(
+            new Movie(1L, "Inception", "Sci-Fi", true, "poster1.jpg", LocalDate.of(2010, 7, 16)),
+            new Movie(2L, "Interstellar", "Sci-Fi", true, "poster2.jpg", LocalDate.of(2014, 11, 7)),
+            new Movie(3L, "The Dark Knight", "Action", true, "poster3.jpg", LocalDate.of(2008, 7, 18))
+        );
     }
 
     @Test
     void testSavedMovie() {
-        when(movieRepository.save(any(Movie.class))).thenReturn(movie);
+        when(movieRepository.save(any(Movie.class))).thenReturn(movies.get(0));
 
-        Movie savedMovie = movieService.saved(movie);
+        Movie savedMovie = movieService.saved(movies.get(0));
 
         assertNotNull(savedMovie);
         assertEquals("Inception", savedMovie.getTitle());
@@ -50,61 +55,54 @@ class MovieServiceTest {
 
     @Test
     void testGetPopularMovies() {
-        when(movieRepository.findByIsPopularTrue()).thenReturn(Arrays.asList(movie));
+        when(movieRepository.findByIsPopularTrue()).thenReturn(movies);
 
         List<Movie> popularMovies = movieService.getPopularMovies();
 
         assertNotNull(popularMovies);
-        assertEquals(1, popularMovies.size());
-        assertTrue(popularMovies.get(0).isPopular());
+        assertEquals(3, popularMovies.size());
+        assertTrue(popularMovies.stream().allMatch(Movie::isPopular));
         verify(movieRepository, times(1)).findByIsPopularTrue();
     }
 
     @Test
     void testGetMoviesByGenre() {
-        when(movieRepository.findByGenre("Sci-Fi")).thenReturn(Arrays.asList(movie));
+        when(movieRepository.findByGenre("Sci-Fi")).thenReturn(Arrays.asList(movies.get(0), movies.get(1)));
 
         List<Movie> moviesByGenre = movieService.getMoviesByGenre("Sci-Fi");
 
         assertNotNull(moviesByGenre);
-        assertEquals(1, moviesByGenre.size());
-        assertEquals("Sci-Fi", moviesByGenre.get(0).getGenre());
+        assertEquals(2, moviesByGenre.size());
+        assertTrue(moviesByGenre.stream().allMatch(movie -> movie.getGenre().equals("Sci-Fi")));
         verify(movieRepository, times(1)).findByGenre("Sci-Fi");
     }
 
     @Test
     void testSearchMovieByName() {
+        when(movieRepository.Search("Inception")).thenReturn(Arrays.asList(movies.get(0)));
 
-    Movie movie1 = new Movie(1L, "Inception", "Sci-Fi", true, "poster1.jpg", LocalDate.of(2010, 7, 16));
-    Movie movie2 = new Movie(2L, "Inception: The Beginning", "Sci-Fi", true, "poster2.jpg", LocalDate.of(2020, 1, 1));
+        List<Movie> searchResults = movieService.search("Inception");
 
-    when(movieRepository.Search("Inception")).thenReturn(Arrays.asList(movie1, movie2));
-
-    List<Movie> searchResults = movieService.search("Inception");
-
-    assertNotNull(searchResults);
-    assertEquals(2, searchResults.size());
-    assertEquals("Inception", searchResults.get(0).getTitle());
-    assertEquals("Inception: The Beginning", searchResults.get(1).getTitle());
-
-    verify(movieRepository, times(1)).Search("Inception");
-}
+        assertNotNull(searchResults);
+        assertEquals(1, searchResults.size());
+        assertEquals("Inception", searchResults.get(0).getTitle());
+        verify(movieRepository, times(1)).Search("Inception");
+    }
 
     @Test
     void testSaveBulkMovies() {
-        List<Movie> movies = Arrays.asList(movie);
         when(movieRepository.saveAll(anyList())).thenReturn(movies);
 
         List<Movie> savedMovies = movieService.savebulk(movies);
 
         assertNotNull(savedMovies);
-        assertEquals(1, savedMovies.size());
+        assertEquals(3, savedMovies.size());
         verify(movieRepository, times(1)).saveAll(anyList());
     }
 
     @Test
     void testFindMovieByName() {
-        when(movieRepository.findByName("Inception")).thenReturn(movie);
+        when(movieRepository.findByName("Inception")).thenReturn(movies.get(0));
 
         Movie foundMovie = movieService.findbyName("Inception");
 
@@ -116,37 +114,37 @@ class MovieServiceTest {
     @Test
     void testGetUpcomingMovies() {
         LocalDate today = LocalDate.now();
-        when(movieRepository.findUpcomingMovies(today)).thenReturn(Arrays.asList(movie));
+        when(movieRepository.findUpcomingMovies(today)).thenReturn(Arrays.asList(movies.get(1), movies.get(2)));
 
         List<Movie> upcomingMovies = movieService.getUpcomingMovies();
 
         assertNotNull(upcomingMovies);
-        assertEquals(1, upcomingMovies.size());
+        assertEquals(2, upcomingMovies.size());
         verify(movieRepository, times(1)).findUpcomingMovies(today);
     }
 
     @Test
     void testGetMoviesByDesc() {
         LocalDate today = LocalDate.now();
-        when(movieRepository.findUpcomingMoviesDescending(today)).thenReturn(Arrays.asList(movie));
+        when(movieRepository.findUpcomingMoviesDescending(today)).thenReturn(movies);
 
         List<Movie> upcomingMoviesDesc = movieService.getMoviesbydesc();
 
         assertNotNull(upcomingMoviesDesc);
-        assertEquals(1, upcomingMoviesDesc.size());
+        assertEquals(3, upcomingMoviesDesc.size());
         verify(movieRepository, times(1)).findUpcomingMoviesDescending(today);
     }
 
     @Test
     void testGetAllMovies() {
         Pageable pageable = PageRequest.of(0, 5);
-        Page<Movie> page = new PageImpl<>(Arrays.asList(movie));
+        Page<Movie> page = new PageImpl<>(movies);
         when(movieRepository.findAll(pageable)).thenReturn(page);
 
         Page<Movie> allMovies = movieService.getAllMovies(0, 5);
 
         assertNotNull(allMovies);
-        assertEquals(1, allMovies.getContent().size());
+        assertEquals(3, allMovies.getContent().size());
         verify(movieRepository, times(1)).findAll(pageable);
     }
 
