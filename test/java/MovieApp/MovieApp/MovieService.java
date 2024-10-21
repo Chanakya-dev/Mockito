@@ -74,15 +74,21 @@ class MovieServiceTest {
 
     @Test
     void testSearchMovieByName() {
-        when(movieRepository.Search("Inception")).thenReturn(Arrays.asList(movie));
 
-        List<Movie> searchResults = movieService.search("Inception");
+    Movie movie1 = new Movie(1L, "Inception", "Sci-Fi", true, "poster1.jpg", LocalDate.of(2010, 7, 16));
+    Movie movie2 = new Movie(2L, "Inception: The Beginning", "Sci-Fi", true, "poster2.jpg", LocalDate.of(2020, 1, 1));
 
-        assertNotNull(searchResults);
-        assertEquals(1, searchResults.size());
-        assertEquals("Inception", searchResults.get(0).getTitle());
-        verify(movieRepository, times(1)).Search("Inception");
-    }
+    when(movieRepository.Search("Inception")).thenReturn(Arrays.asList(movie1, movie2));
+
+    List<Movie> searchResults = movieService.search("Inception");
+
+    assertNotNull(searchResults);
+    assertEquals(2, searchResults.size());
+    assertEquals("Inception", searchResults.get(0).getTitle());
+    assertEquals("Inception: The Beginning", searchResults.get(1).getTitle());
+
+    verify(movieRepository, times(1)).Search("Inception");
+}
 
     @Test
     void testSaveBulkMovies() {
