@@ -12,27 +12,18 @@ Add the following dependencies to your `pom.xml` file:
 
 ```xml
 <dependencies>
-    <!-- Other dependencies -->
-
-    <!-- JUnit Jupiter for unit testing -->
-    <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-api</artifactId>
-        <version>5.7.0</version>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-engine</artifactId>
-        <version>5.7.0</version>
-        <scope>test</scope>
-    </dependency>
-
-    <!-- Mockito for mocking dependencies -->
     <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.7.7</version>
+        <version>5.5.0</version> <!-- Latest stable version -->
+        <scope>test</scope>
+    </dependency>
+
+    <!-- Optional: Mockito with JUnit Jupiter (for JUnit 5) -->
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>5.5.0</version>
         <scope>test</scope>
     </dependency>
 
